@@ -1,0 +1,36 @@
+services:
+  mysql:
+    container_name: mysqlappbuscalo
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: app_buscalo
+      MYSQL_USER: buscalo
+      MYSQL_PASSWORD: 12345
+    volumes:
+      - mysqlappbuscalo:/var/lib/mysql
+    ports:
+      - "3307:3306"  # Expose MySQL port to the host
+    networks:
+      - mysqlappbuscalo
+    restart: unless-stopped
+
+  phpmyadmin:
+    container_name: phpmyadminappbuscalo
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8082:80"  # Expose phpMyAdmin to the host
+    networks:
+      - mysqlappbuscalo
+    restart: unless-stopped
+
+networks:
+  mysqlappbuscalo:
+    driver: bridge
+
+volumes:
+  mysqlappbuscalo:

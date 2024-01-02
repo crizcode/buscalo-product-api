@@ -1,0 +1,2 @@
+create table if not exists categoria (cate_id integer not null, nombre varchar(255), estado varchar(20), primary key (cate_id));
+create table if not exists proveedor (prove_id integer not null, nombre varchar(255), estado varchar(20), primary key (prove_id));
