@@ -5,13 +5,14 @@ import com.empresa.buscaloproductapi.mapper.ProductUpdateDTOToProduct;
 import com.empresa.buscaloproductapi.persistence.entity.Product;
 import com.empresa.buscaloproductapi.persistence.repository.ProductRepository;
 import com.empresa.buscaloproductapi.service.dto.ProductInDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-
+@Slf4j
 @Service
 public class ProductService {
     private final ProductRepository repository;

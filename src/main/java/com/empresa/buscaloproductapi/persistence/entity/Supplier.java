@@ -4,11 +4,12 @@ import com.empresa.buscaloproductapi.util.Estado;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Data
 @Table(name = "proveedor")
-public class Supplier {
+public class Supplier implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

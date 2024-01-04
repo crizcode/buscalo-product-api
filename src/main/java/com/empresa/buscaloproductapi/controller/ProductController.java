@@ -5,14 +5,19 @@ import com.empresa.buscaloproductapi.service.ProductService;
 import com.empresa.buscaloproductapi.service.dto.ProductInDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RestController
-@RequestMapping("api/v1/product")
+@RequestMapping("api/v1/products")
 @Api(tags = {"Producto"})
 public class ProductController {
     private final ProductService productService;
@@ -24,8 +29,10 @@ public class ProductController {
 
     @PostMapping
     @ApiOperation(value = "Crear un nuevo producto", notes = "Añade un nuevo producto a la base de datos")
-    public Product createProduct(@RequestBody ProductInDTO productInDTO){
-        return this.productService.createProduct(productInDTO);
+    public ResponseEntity<?> createProduct(@Valid @RequestBody ProductInDTO productInDTO) {
+        Product newProduct = this.productService.createProduct(productInDTO);
+        log.info("Nuevo registro de producto: {}", newProduct);
+        return new ResponseEntity<>(newProduct, HttpStatus.OK);
     }
     @GetMapping
     @ApiOperation(value = "Lista todos lo productos creados")
