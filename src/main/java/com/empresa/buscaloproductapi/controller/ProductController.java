@@ -1,70 +1,115 @@
 package com.empresa.buscaloproductapi.controller;
 
 import com.empresa.buscaloproductapi.persistence.entity.Product;
-import com.empresa.buscaloproductapi.service.ProductService;
-import com.empresa.buscaloproductapi.service.dto.ProductInDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import com.empresa.buscaloproductapi.service.IProductService;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController
 @RequestMapping("api/v1/products")
 @Api(tags = {"Producto"})
+@ApiModel(description = "Detalles del producto")
 public class ProductController {
-    private final ProductService productService;
+
+    private final IProductService productService;
 
 
-    public ProductController(ProductService productService) {
+    public ProductController(IProductService productService) {
         this.productService = productService;
     }
 
     @PostMapping
     @ApiOperation(value = "Crear un nuevo producto", notes = "Añade un nuevo producto a la base de datos")
-    public ResponseEntity<?> createProduct(@Valid @RequestBody ProductInDTO productInDTO) {
-        Product newProduct = this.productService.createProduct(productInDTO);
-        log.info("Nuevo registro de producto: {}", newProduct);
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Producto creado exitosamente"),
+            @ApiResponse(code = 400, message = "Solicitud incorrecta, verifique los datos enviados"),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "Recurso no encontrado"),
+            @ApiResponse(code = 500, message = "Error interno del servidor")
+    })
+    public ResponseEntity<?> createProduct(@Valid @RequestBody Product producto) {
+        Product newProduct = this.productService.registrarProducto(producto);
         return new ResponseEntity<>(newProduct, HttpStatus.OK);
     }
-    @GetMapping
-    @ApiOperation(value = "Lista todos lo productos creados")
-    public List<Product> findAll(){
-        return this.productService.findAll();
+
+    @GetMapping //que utiliza un get
+    @ApiOperation(value = "Listar los productos")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Productos encontrados", response = Product.class),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "No existen productos"),
+            @ApiResponse(code = 500, message = "Error del interno del servidor")
+    })
+    public ResponseEntity<?> listarProductos(){
+        List<Product> productos = productService.listarProductos();
+        return new ResponseEntity<>(productos, !productos.isEmpty() ? HttpStatus.OK : HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/{id}")
     @ApiOperation(value = "Obtener un producto por su ID")
-    public ResponseEntity<Product> findById(@PathVariable Long id) {
-        Optional<Product> productOptional = productService.findById(id);
-        return productOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Producto encontrado", response = Product.class),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "Producto no encontrado"),
+            @ApiResponse(code = 500, message = "Error del interno del servidor")
+    })
+    public ResponseEntity<?> obtenerProducto(@PathVariable("id") Long id){
+        return new ResponseEntity<>(productService.obtenerProducto(id), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    @ApiOperation(value = "Eliminar un producto por su ID")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        try {
-            productService.deleteById(id);
-            return ResponseEntity.noContent().build();
-        } catch (EmptyResultDataAccessException ex) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("/{id}")
+    @PutMapping
     @ApiOperation(value = "Modificar un producto por su ID")
-    public ResponseEntity<Void> updateProduct(@PathVariable Long id,
-                                              @RequestBody ProductInDTO productRequestDTO) {
-        productService.updateProduct(id, productRequestDTO);
-        return ResponseEntity.noContent().build();
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Producto modificaco exitosamente"),
+            @ApiResponse(code = 400, message = "Solicitud incorrecta, verifique los datos enviados"),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "Recurso no encontrado"),
+            @ApiResponse(code = 500, message = "Error interno del servidor")
+    })
+    public ResponseEntity<?> modificarProducto(@Valid @RequestBody Product producto){
+        Product newProducto = productService.modificarProducto(producto);
+        return new ResponseEntity<>(newProducto, HttpStatus.OK);
     }
 
+    @DeleteMapping(value = "/{id}")
+    @ApiOperation(value = "Eliminar un producto por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Producto eliminado exitosamente"),
+            @ApiResponse(code = 400, message = "Solicitud incorrecta, verifique los datos enviados"),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "Recurso no encontrado"),
+            @ApiResponse(code = 500, message = "Error interno del servidor")
+    })
+    public ResponseEntity<?> eliminarAlumno(@PathVariable("id") Long id){
+        return new ResponseEntity<>(productService.eliminarProducto(id), HttpStatus.OK);
+    }
+
+    @GetMapping("/{nombre}/listado")
+    @ApiOperation(value = "Listar productos por su nombre")
+    @ApiParam(name = "nombre", value = "Nombre del producto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Productos encontrados exitosamente"),
+            @ApiResponse(code = 400, message = "Solicitud incorrecta, verifique los datos enviados"),
+            @ApiResponse(code = 401, message = "No autorizado, se requiere autenticación"),
+            @ApiResponse(code = 403, message = "Prohibido, el usuario no tiene los permisos necesarios"),
+            @ApiResponse(code = 404, message = "No se encontraron productos con el nombre especificado"),
+            @ApiResponse(code = 500, message = "Error interno del servidor")
+    })
+    public ResponseEntity<?> listarProductosPorNombre(@PathVariable String nombre) {
+        List<Product> productos = productService.listarProductosPorNombre(nombre);
+        return new ResponseEntity<>(productos, !productos.isEmpty() ? HttpStatus.OK : HttpStatus.NOT_FOUND);
+    }
 
 }

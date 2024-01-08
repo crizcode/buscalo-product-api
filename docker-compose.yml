@@ -10,7 +10,7 @@ services:
       MYSQL_USER: buscalo
       MYSQL_PASSWORD: 2345
     volumes:
-      - mysqlappbuscalo:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     ports:
       - "3307:3306"
     networks:
@@ -29,6 +29,9 @@ services:
     networks:
       - mysqlappbuscalo
     restart: unless-stopped
+    volumes:
+      - phpmyadmin_data:/var/lib/pgadmin
+
   java_app:
     container_name: java_appbuscalo
     image: buscalo-java_app:1.0.0
@@ -36,17 +39,21 @@ services:
     ports:
       - 8080:8080
     environment:
-      - MYSQL_CONN=jdbc:mysql://mysql_appbuscalo:3306/app_buscalo
+      - MYSQL_CONN=jdbc:mysql://mysql_appbuscalo:3306/app_buscalo?serverTimezone=UTC
       - MYSQL_DB_USERNAME=buscalo
       - MYSQL_DB_USER_PASS=2345
     depends_on:
       - mysql
     networks:
       - mysqlappbuscalo
+    volumes:
+      - java_app_data:/usr/src/app
 
 networks:
   mysqlappbuscalo:
     driver: bridge
 
 volumes:
-  mysqlappbuscalo:
+  mysql_data:
+  phpmyadmin_data:
+  java_app_data:

@@ -1,13 +1,15 @@
 package com.empresa.buscaloproductapi.persistence.entity;
 
 import com.empresa.buscaloproductapi.util.Estado;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.validator.constraints.Length;
 import javax.persistence.*;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.Date;
 
 @Entity
 @Data
@@ -19,23 +21,35 @@ public class Product implements Serializable {
     @Column(name = "prod_id")
     private long id;
 
-    @NotEmpty(message = "{NotEmpty.producto.nombre}")
+    @NotBlank(message = "{NotBlank.producto.nombre}")
+    @Column(name = "prod_nombre")
     private String nombre;
 
-    @NotEmpty(message = "{NotEmpty.producto.descripcion}")
+    @NotBlank(message = "{NotBlank.producto.descripcion}")
+    @Length(min = 5, max = 50, message = "{Length.producto.descripcion}")
+    @Column(name = "prod_dsc")
     private String descripcion;
 
-    @NotNull(message = "{NotNull.producto.precio}")
-    private double precio;
+    @NotNull(message = "{NotEmpty.producto.precio}")
+    @Min(value = 1, message = "{Min.producto.precio}")
+    @Column(name = "prod_prec")
+    private BigDecimal precio;
 
     @NotNull(message = "{NotNull.producto.cantidad}")
     @Min(value = 1, message = "{Min.producto.cantidad}")
-    private  int cantidad;
+    @Column(name = "prod_cant")
+    private long cantidad;
 
     @NotEmpty(message = "{NotEmpty.producto.imgurl}")
+    @Column(name = "prod_image")
     private String imagenUrl;
 
-    private LocalDateTime fechaCreacion;
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    @ApiModelProperty(hidden = true)
+    private Date fechaCreacion;
+
 
     @ManyToOne
     @JoinColumn(name = "cate_id", nullable = false)
@@ -48,6 +62,7 @@ public class Product implements Serializable {
     private Supplier proveedor;
 
     @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(10) default 'ACTIVO'")
     private Estado estado;
 
 }
